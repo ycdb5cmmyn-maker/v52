@@ -1,4 +1,24 @@
-export interface ScoreResult {
+/**
+ * Tipos TypeScript para la API ICN
+ */
+
+export interface ParrafoAnalisis {
+  txt: string;
+  idx: number;
+  sev: 'ok' | 'warn' | 'alert';
+  problemas: ProblemaParrafo[];
+  fortalezas: string[];
+  error?: string;
+}
+
+export interface ProblemaParrafo {
+  tipo: string;
+  impacto: 'alto' | 'medio' | 'bajo';
+  texto_evidencia?: string;
+  sugerencia: string;
+}
+
+export interface ScoreDimension {
   score: number;
   justificacion: string;
   evidencia?: string;
@@ -6,83 +26,63 @@ export interface ScoreResult {
   sub?: Record<string, number>;
 }
 
-export interface Scores {
-  periodistico: ScoreResult;
-  narrativo: ScoreResult;
-  riesgo: ScoreResult;
-  contextual: ScoreResult & { faltantes?: ContextoFaltante[] };
+export interface ScoresContextual extends ScoreDimension {
+  faltantes: DimensionFaltante[];
 }
 
-export interface ContextoFaltante {
+export interface DimensionFaltante {
   dimension: string;
   descripcion: string;
   impacto: 'alto' | 'medio' | 'bajo';
 }
 
-export interface Problema {
-  problema: string;
-  gravedad: 'alta' | 'media' | 'baja';
-  solucion: string;
+export interface TipoFuente {
+  tipo: string;
+  cantidad: number;
+  ejemplos: string[];
 }
 
-export interface ParrafoAnalisis {
-  txt: string;
-  idx: number;
-  sev: 'ok' | 'warn' | 'alert';
-  problemas: Array<{
-    tipo: string;
-    impacto: 'alto' | 'medio' | 'bajo';
-    texto_evidencia?: string;
-    sugerencia: string;
-  }>;
-  fortalezas: string[];
-  error?: string;
-}
-
-export interface FuentesInfo {
-  tipos_detectados: Array<{
-    tipo: string;
-    cantidad: number;
-    ejemplos?: string[];
-  }>;
+export interface FuentesData {
+  tipos_detectados: TipoFuente[];
   diversidad: number;
   independencia: number;
   concentracion_oficial: number;
 }
 
+export interface ProblemaCritico {
+  problema: string;
+  gravedad: 'alta' | 'media' | 'baja';
+  solucion: string;
+}
+
 export interface AnalisisCompleto {
   parrafos: ParrafoAnalisis[];
-  scores: Scores;
-  fuentes: FuentesInfo;
+  scores: {
+    periodistico: ScoreDimension;
+    narrativo: ScoreDimension;
+    riesgo: ScoreDimension;
+    contextual: ScoresContextual;
+  };
+  fuentes: FuentesData;
   tiempoCorreccion: number;
   razonTiempo: string;
   fortalezas: string[];
-  problemasCriticos: Problema[];
+  problemasCriticos: ProblemaCritico[];
   veredicto: string;
   accionInmediata: string;
-  tipo: 'noticia' | 'cronica' | 'analisis' | 'columna' | 'editorial' | 'entrevista';
+  tipo: string;
   texto: string;
   timestamp: number;
-  id?: string;
 }
 
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
-  message?: string;
   timestamp: number;
 }
 
-export interface AnalisisHistorico {
-  id: string;
-  timestamp: number;
-  tipo: string;
-  texto_preview: string;
-  scores: {
-    periodistico: number;
-    narrativo: number;
-    riesgo: number;
-    contextual: number;
-  };
+export interface RateLimitData {
+  count: number;
+  resetAt: number;
 }
