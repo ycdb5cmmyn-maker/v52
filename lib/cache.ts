@@ -14,6 +14,11 @@ const cache = new Map<string, CacheEntry>();
 // TTL por defecto: 24 horas
 const DEFAULT_TTL = 24 * 60 * 60 * 1000;
 
+// Extender global para agregar propiedades personalizadas
+declare global {
+  var cacheCleanupInterval: NodeJS.Timeout | undefined;
+}
+
 /**
  * Generar clave de caché basada en texto y tipo
  */
