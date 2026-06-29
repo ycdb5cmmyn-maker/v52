@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import type { ApiResponse } from '@/lib/types';
+import { withCORS } from '@/lib/middleware';
 
 interface HealthResponse {
   status: 'ok' | 'error';
@@ -6,34 +8,34 @@ interface HealthResponse {
   timestamp: number;
   version: string;
   uptime: number;
+  apiKey?: 'configured' | 'missing';
 }
 
 const startTime = Date.now();
 
-export default function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<HealthResponse>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ApiResponse<HealthResponse>>) {
   if (req.method !== 'GET') {
     return res.status(405).json({
-      status: 'error',
-      message: 'Método no permitido',
+      success: false,
+      error: 'Método no permitido. Use GET.',
       timestamp: Date.now(),
-      version: '1.0.0',
-      uptime: Date.now() - startTime,
     });
   }
 
-  // Verificar que la API Key está configurada
   const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
 
   res.status(hasApiKey ? 200 : 503).json({
-    status: hasApiKey ? 'ok' : 'error',
-    message: hasApiKey
-      ? 'API ICN operativa'
-      : 'Falta configuración de ANTHROPIC_API_KEY',
+    success: hasApiKey,
+    data: {
+      status: hasApiKey ? 'ok' : 'error',
+      message: hasApiKey ? 'API ICN operativa' : 'ANTHROPIC_API_KEY no configurada',
+      timestamp: Date.now(),
+      version: '1.0.0',
+      uptime: Date.now() - startTime,
+      apiKey: hasApiKey ? 'configured' : 'missing',
+    },
     timestamp: Date.now(),
-    version: '1.0.0',
-    uptime: Date.now() - startTime,
   });
 }
+
+export default withCORS(handler);
